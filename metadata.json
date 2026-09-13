@@ -1,0 +1,6 @@
+{
+  "name": "Eco Scan",
+  "description": "AI-powered Smart Waste Segregation Guide aligned with Indian Solid Waste Management Rules & Swachh Bharat Mission",
+  "requestFramePermissions": ["camera"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
