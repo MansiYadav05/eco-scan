@@ -310,7 +310,7 @@ export const ClassifyPage: React.FC = () => {
       </div>
 
       {/* Main Conversation Feed Area */}
-      <div className="flex-1 max-w-4xl w-full mx-auto px-4 sm:px-6 pt-6 pb-56 flex flex-col">
+      <div className="flex-1 max-w-4xl w-full mx-auto px-3 sm:px-6 pt-6 pb-56 flex flex-col">
         {/* Empty State */}
         <AnimatePresence>
           {messages.length === 0 && !isLoading && (

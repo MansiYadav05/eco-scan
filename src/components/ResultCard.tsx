@@ -167,14 +167,14 @@ ${result.ecoTip ? `Eco Tip: ${result.ecoTip}` : ''}`;
       />
 
       {/* Header Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-neutral-100">
+      <div className="flex flex-col gap-4 pb-6 border-b border-neutral-100">
         <div className="space-y-1">
           <div className="flex flex-wrap items-center gap-2">
             <span className="text-[11px] font-bold uppercase tracking-wider text-neutral-400">
               Classified Item
             </span>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 min-w-0">
             {result.imageUrl && (
               <div className="relative group shrink-0">
                 <img
@@ -187,14 +187,14 @@ ${result.ecoTip ? `Eco Tip: ${result.ecoTip}` : ''}`;
                 </span>
               </div>
             )}
-            <h2 className="text-2xl sm:text-3xl font-extrabold text-neutral-900 tracking-tight capitalize">
+            <h2 className="text-xl sm:text-3xl font-extrabold text-neutral-900 tracking-tight capitalize break-words min-w-0 leading-tight">
               {result.itemDescription}
             </h2>
           </div>
         </div>
 
         {/* Action Controls & Category Badge */}
-        <div className="flex items-center gap-2 shrink-0">
+        <div className="flex flex-wrap items-center gap-2 shrink-0">
           <div
             id="category-badge"
             className={`inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-sm font-bold border ring-2 shadow-xs transition-transform ${config.badgeClass}`}

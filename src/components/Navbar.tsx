@@ -17,11 +17,11 @@ export const Navbar: React.FC = () => {
 
   return (
     <header className="bg-[#10B981] text-white shadow-md shadow-emerald-950/10 sticky top-0 z-40">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-4">
+      <div className="max-w-6xl mx-auto px-3 sm:px-6 py-2 sm:py-0 min-h-[64px] flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-4">
         {/* Brand Logo & Title */}
         <Link
           to="/classify"
-          className="flex items-center gap-2.5 group focus:outline-none focus-visible:ring-2 focus-visible:ring-white rounded-xl"
+          className="flex items-center gap-2.5 group focus:outline-none focus-visible:ring-2 focus-visible:ring-white rounded-xl self-start sm:self-auto"
         >
           <div className="w-10 h-10 rounded-xl bg-white/15 backdrop-blur-md flex items-center justify-center text-white border border-white/20 shadow-inner group-hover:scale-105 transition-transform duration-200">
             <Recycle className="w-5 h-5 text-white" />
@@ -40,15 +40,14 @@ export const Navbar: React.FC = () => {
         <nav
           id="main-navigation"
           aria-label="Main Navigation"
-          className="flex items-center bg-emerald-900/30 p-1 rounded-2xl border border-emerald-400/25 backdrop-blur-md text-xs font-medium"
+          className="flex items-center justify-center bg-emerald-900/30 p-1 rounded-2xl border border-emerald-400/25 backdrop-blur-md text-xs font-medium w-full sm:w-auto overflow-x-auto"
         >
           <NavLink
             to="/classify"
             className={({ isActive }) =>
-              `flex items-center gap-1.5 px-3 sm:px-4 py-1.5 rounded-xl transition-all duration-150 cursor-pointer ${
-                isActive
-                  ? 'bg-white text-emerald-900 font-bold shadow-xs'
-                  : 'text-emerald-100 hover:text-white hover:bg-white/10'
+              `flex items-center gap-1.5 px-3 sm:px-4 py-1.5 rounded-xl transition-all duration-150 cursor-pointer ${isActive
+                ? 'bg-white text-emerald-900 font-bold shadow-xs'
+                : 'text-emerald-100 hover:text-white hover:bg-white/10'
               }`
             }
           >
@@ -59,10 +58,9 @@ export const Navbar: React.FC = () => {
           <NavLink
             to="/history"
             className={({ isActive }) =>
-              `flex items-center gap-1.5 px-3 sm:px-4 py-1.5 rounded-xl transition-all duration-150 cursor-pointer ${
-                isActive
-                  ? 'bg-white text-emerald-900 font-bold shadow-xs'
-                  : 'text-emerald-100 hover:text-white hover:bg-white/10'
+              `flex items-center gap-1.5 px-3 sm:px-4 py-1.5 rounded-xl transition-all duration-150 cursor-pointer ${isActive
+                ? 'bg-white text-emerald-900 font-bold shadow-xs'
+                : 'text-emerald-100 hover:text-white hover:bg-white/10'
               }`
             }
           >
@@ -73,10 +71,9 @@ export const Navbar: React.FC = () => {
           <NavLink
             to="/about"
             className={({ isActive }) =>
-              `flex items-center gap-1.5 px-3 sm:px-4 py-1.5 rounded-xl transition-all duration-150 cursor-pointer ${
-                isActive
-                  ? 'bg-white text-emerald-900 font-bold shadow-xs'
-                  : 'text-emerald-100 hover:text-white hover:bg-white/10'
+              `flex items-center gap-1.5 px-3 sm:px-4 py-1.5 rounded-xl transition-all duration-150 cursor-pointer ${isActive
+                ? 'bg-white text-emerald-900 font-bold shadow-xs'
+                : 'text-emerald-100 hover:text-white hover:bg-white/10'
               }`
             }
           >
@@ -86,9 +83,9 @@ export const Navbar: React.FC = () => {
         </nav>
 
         {/* Right Status Indicator: Guest vs Logged In */}
-        <div className="flex items-center gap-2 sm:gap-3">
+        <div className="flex items-center justify-end gap-2 sm:gap-3 w-full sm:w-auto">
           {authMode === 'login' ? (
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 max-w-full">
               {/* EcoScore Progress Ring */}
               <div
                 id="user-ecoscore-indicator"
