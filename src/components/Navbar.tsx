@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { NavLink, Link, useNavigate } from 'react-router-dom';
 import {
   Recycle,
@@ -8,19 +8,25 @@ import {
   User,
   Leaf,
   LogIn,
+  Menu,
+  X,
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 
 export const Navbar: React.FC = () => {
   const { authMode, userEmail, ecoScore } = useApp();
   const navigate = useNavigate();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  const closeMobileMenu = () => setIsMobileMenuOpen(false);
 
   return (
     <header className="bg-[#10B981] text-white shadow-md shadow-emerald-950/10 sticky top-0 z-40">
-      <div className="max-w-6xl mx-auto px-3 sm:px-6 py-2 sm:py-0 min-h-[64px] flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-4">
+      <div className="max-w-6xl mx-auto px-3 sm:px-6 py-2 sm:py-0 min-h-[64px] flex flex-wrap items-center justify-between gap-2 sm:gap-4">
         {/* Brand Logo & Title */}
         <Link
           to="/classify"
+          onClick={closeMobileMenu}
           className="flex items-center gap-2.5 group focus:outline-none focus-visible:ring-2 focus-visible:ring-white rounded-xl self-start sm:self-auto"
         >
           <div className="w-10 h-10 rounded-xl bg-white/15 backdrop-blur-md flex items-center justify-center text-white border border-white/20 shadow-inner group-hover:scale-105 transition-transform duration-200">
@@ -40,7 +46,7 @@ export const Navbar: React.FC = () => {
         <nav
           id="main-navigation"
           aria-label="Main Navigation"
-          className="flex items-center justify-center bg-emerald-900/30 p-1 rounded-2xl border border-emerald-400/25 backdrop-blur-md text-xs font-medium w-full sm:w-auto overflow-x-auto"
+          className="hidden sm:flex items-center justify-center bg-emerald-900/30 p-1 rounded-2xl border border-emerald-400/25 backdrop-blur-md text-xs font-medium w-full sm:w-auto overflow-x-auto"
         >
           <NavLink
             to="/classify"
@@ -82,8 +88,19 @@ export const Navbar: React.FC = () => {
           </NavLink>
         </nav>
 
+        <button
+          type="button"
+          onClick={() => setIsMobileMenuOpen((isOpen) => !isOpen)}
+          className="sm:hidden w-10 h-10 rounded-xl bg-white/15 hover:bg-white/25 border border-white/25 flex items-center justify-center transition-colors cursor-pointer"
+          aria-label={isMobileMenuOpen ? 'Close navigation menu' : 'Open navigation menu'}
+          aria-expanded={isMobileMenuOpen}
+          aria-controls="mobile-navigation-menu"
+        >
+          {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+        </button>
+
         {/* Right Status Indicator: Guest vs Logged In */}
-        <div className="flex items-center justify-end gap-2 sm:gap-3 w-full sm:w-auto">
+        <div className="hidden sm:flex items-center justify-end gap-2 sm:gap-3 w-full sm:w-auto">
           {authMode === 'login' ? (
             <div className="flex items-center gap-2 max-w-full">
               {/* EcoScore Progress Ring */}
@@ -178,6 +195,92 @@ export const Navbar: React.FC = () => {
             </div>
           )}
         </div>
+
+        {isMobileMenuOpen && (
+          <div
+            id="mobile-navigation-menu"
+            className="sm:hidden basis-full border-t border-white/20 pt-2 pb-1 flex flex-col gap-2"
+          >
+            <nav aria-label="Mobile Navigation" className="flex flex-col gap-1">
+              <NavLink
+                to="/classify"
+                onClick={closeMobileMenu}
+                className={({ isActive }) =>
+                  `flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm font-semibold transition-colors ${isActive
+                    ? 'bg-white text-emerald-900'
+                    : 'text-emerald-50 hover:bg-white/10'
+                  }`
+                }
+              >
+                <Leaf className="w-4 h-4" />
+                <span>Classify</span>
+              </NavLink>
+              <NavLink
+                to="/history"
+                onClick={closeMobileMenu}
+                className={({ isActive }) =>
+                  `flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm font-semibold transition-colors ${isActive
+                    ? 'bg-white text-emerald-900'
+                    : 'text-emerald-50 hover:bg-white/10'
+                  }`
+                }
+              >
+                <History className="w-4 h-4" />
+                <span>History</span>
+              </NavLink>
+              <NavLink
+                to="/about"
+                onClick={closeMobileMenu}
+                className={({ isActive }) =>
+                  `flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm font-semibold transition-colors ${isActive
+                    ? 'bg-white text-emerald-900'
+                    : 'text-emerald-50 hover:bg-white/10'
+                  }`
+                }
+              >
+                <Info className="w-4 h-4" />
+                <span>About</span>
+              </NavLink>
+            </nav>
+
+            <div className="border-t border-white/20 pt-2 flex items-center justify-between gap-2">
+              {authMode === 'login' ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    closeMobileMenu();
+                    navigate('/login');
+                  }}
+                  className="flex items-center gap-2 px-3 py-2 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 transition-colors cursor-pointer text-sm font-semibold"
+                >
+                  <User className="w-4 h-4" />
+                  <span className="truncate">{userEmail || 'Account'}</span>
+                </button>
+              ) : (
+                <div
+                  id="mobile-guest-status-badge"
+                  className="flex items-center gap-2 px-3 py-2 rounded-xl bg-white/15 border border-white/25 text-sm font-medium"
+                  title="Guest Mode is active. No queries, IPs, or logs are retained."
+                >
+                  <ShieldCheck className="w-4 h-4 text-emerald-200" />
+                  <span>Guest Mode</span>
+                </div>
+              )}
+
+              {authMode === 'guest' && (
+                <Link
+                  id="mobile-navbar-login-link"
+                  to="/login"
+                  onClick={closeMobileMenu}
+                  className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white text-emerald-900 hover:bg-emerald-50 text-sm font-bold transition-colors shadow-xs"
+                >
+                  <LogIn className="w-4 h-4 text-emerald-600" />
+                  <span>Login</span>
+                </Link>
+              )}
+            </div>
+          </div>
+        )}
       </div>
     </header>
   );

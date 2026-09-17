@@ -222,7 +222,7 @@ export const ClassifyPage: React.FC = () => {
               </div>
               <h3 className="text-xl font-bold text-neutral-900 mb-1">Drop Image to Classify</h3>
               <p className="text-sm text-neutral-500">
-                Gemini 2.5 Flash Vision will scan and classify into Dry, Wet, Harmful, Recyclable, or E-Waste streams.
+                We will scan and classify it into Dry, Wet, Harmful, Recyclable, or E-Waste streams.
               </p>
             </div>
           </motion.div>
@@ -268,9 +268,6 @@ export const ClassifyPage: React.FC = () => {
             <h1 className="text-xl sm:text-2xl font-black text-neutral-900 tracking-tight">
               Classify Waste
             </h1>
-            <span className="text-[11px] font-semibold px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-800 border border-emerald-200">
-              Gemini 2.5 Flash Vision
-            </span>
           </div>
 
           <div className="flex items-center gap-2">
@@ -464,9 +461,6 @@ export const ClassifyPage: React.FC = () => {
                         <span className="text-xs font-bold text-neutral-800">
                           Eco Scan AI
                         </span>
-                        <span className="text-[10px] text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200 font-medium">
-                          {msg.result?.modelUsed || 'Gemini 2.5 Flash'}
-                        </span>
                         <span className="text-[10px] text-neutral-400">
                           {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                         </span>
@@ -507,7 +501,7 @@ export const ClassifyPage: React.FC = () => {
                     <div className="w-2 h-2 rounded-full bg-emerald-500 animate-bounce [animation-delay:0.4s]" />
                   </div>
                   <span className="text-xs font-medium text-neutral-600">
-                    Scanning visual item with Gemini 2.5 Flash into Dry, Wet, Harmful streams...
+                    Scanning visual item into Dry, Wet, Harmful streams...
                   </span>
                 </div>
               </motion.div>
@@ -591,7 +585,7 @@ export const ClassifyPage: React.FC = () => {
                         </span>
                       </div>
                       <p className="text-[11px] text-emerald-800/80 truncate">
-                        Gemini 2.5 Flash will visually classify this item
+                        Image ready for classification
                       </p>
                     </div>
                   </div>

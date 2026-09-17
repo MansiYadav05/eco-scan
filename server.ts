@@ -526,7 +526,7 @@ async function startServer() {
   }
 
   app.listen(PORT, '0.0.0.0', () => {
-    console.log(`Eco Scan server running on http://0.0.0.0:${PORT} (Gemini 2.5 Flash Engine ready)`);
+    console.log(`Eco Scan server running on http://localhost:${PORT} (Gemini 2.5 Flash Engine ready)`);
   });
 }
 
