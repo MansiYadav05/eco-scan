@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Recycle,
   AlertTriangle,
@@ -14,6 +14,8 @@ import {
   ExternalLink,
   Share2,
   Camera,
+  Volume2,
+  VolumeX,
 } from 'lucide-react';
 import type { ClassificationResult, WasteCategory } from '../types';
 
@@ -107,8 +109,41 @@ const CATEGORY_CONFIG: Record<
 export const ResultCard: React.FC<ResultCardProps> = ({ result, onReset }) => {
   const [copied, setCopied] = useState(false);
   const [shared, setShared] = useState(false);
+  const [isSpeaking, setIsSpeaking] = useState(false);
   const config = CATEGORY_CONFIG[result.category] || CATEGORY_CONFIG.Recyclable;
   const CategoryIcon = config.icon;
+
+  useEffect(() => {
+    return () => window.speechSynthesis?.cancel();
+  }, []);
+
+  useEffect(() => {
+    window.speechSynthesis?.cancel();
+    setIsSpeaking(false);
+  }, [result]);
+
+  const handleReadResult = () => {
+    if (!('speechSynthesis' in window)) return;
+
+    if (isSpeaking) {
+      window.speechSynthesis.cancel();
+      setIsSpeaking(false);
+      return;
+    }
+
+    const instructions = result.disposalInstructions
+      .map((instruction, index) => `Step ${index + 1}: ${instruction}`)
+      .join('. ');
+    const spokenText = `Eco Scan result for ${result.itemDescription}. Category: ${result.category}. ${config.binLabel}. ${result.explanation}. Disposal instructions: ${instructions}.${result.ecoTip ? ` Eco tip: ${result.ecoTip}.` : ''}`;
+    const utterance = new SpeechSynthesisUtterance(spokenText);
+    utterance.rate = 0.95;
+    utterance.onend = () => setIsSpeaking(false);
+    utterance.onerror = () => setIsSpeaking(false);
+
+    window.speechSynthesis.cancel();
+    window.speechSynthesis.speak(utterance);
+    setIsSpeaking(true);
+  };
 
   const handleShare = async () => {
     const textToShare = `🌿 Eco Scan - Waste Segregation Guide
@@ -195,10 +230,7 @@ ${result.ecoTip ? `Eco Tip: ${result.ecoTip}` : ''}`;
 
         {/* Action Controls & Category Badge */}
         <div className="flex flex-wrap items-center gap-2 shrink-0">
-          <div
-            id="category-badge"
-            className={`inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-sm font-bold border ring-2 shadow-xs transition-transform ${config.badgeClass}`}
-          >
+          <div id="category-badge" className={`inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-sm font-bold border ring-2 shadow-xs transition-transform ${config.badgeClass}`} >
             <span className={`w-2 h-2 rounded-full ${config.glowDot} animate-pulse`} />
             <CategoryIcon className="w-4 h-4" />
             <div className="flex items-center gap-1.5">
@@ -206,17 +238,6 @@ ${result.ecoTip ? `Eco Tip: ${result.ecoTip}` : ''}`;
               <span className="text-xs opacity-75 font-normal">({config.hindiLabel})</span>
             </div>
           </div>
-
-          <button
-            id="share-result-btn"
-            type="button"
-            onClick={handleShare}
-            className="p-2.5 rounded-xl border border-neutral-200 hover:border-emerald-300 text-neutral-500 hover:text-emerald-700 hover:bg-emerald-50/50 transition-all cursor-pointer relative"
-            title={shared ? 'Copied to clipboard!' : 'Share result (copy to clipboard)'}
-            aria-label="Share classification result"
-          >
-            {shared ? <Check className="w-4 h-4 text-emerald-600" /> : <Share2 className="w-4 h-4" />}
-          </button>
 
           <button
             id="copy-instructions-btn"
@@ -227,6 +248,18 @@ ${result.ecoTip ? `Eco Tip: ${result.ecoTip}` : ''}`;
             aria-label="Copy disposal guide"
           >
             {copied ? <Check className="w-4 h-4 text-emerald-600" /> : <Copy className="w-4 h-4" />}
+          </button>
+
+          <button
+            id="read-result-btn"
+            type="button"
+            onClick={handleReadResult}
+            className="p-2.5 rounded-xl border border-neutral-200 hover:border-emerald-300 text-neutral-500 hover:text-emerald-700 hover:bg-emerald-50/50 transition-all cursor-pointer"
+            title={isSpeaking ? 'Stop reading result' : 'Read result aloud'}
+            aria-label={isSpeaking ? 'Stop reading result' : 'Read result aloud'}
+            aria-pressed={isSpeaking}
+          >
+            {isSpeaking ? <VolumeX className="w-4 h-4 text-emerald-600" /> : <Volume2 className="w-4 h-4" />}
           </button>
 
           {onReset && (

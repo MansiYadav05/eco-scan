@@ -1,26 +1,42 @@
 import React, { useState, useRef, useEffect, type KeyboardEvent, type DragEvent, type ClipboardEvent } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import {
-  Send,
-  Leaf,
-  Recycle,
-  User,
-  ShieldCheck,
-  HelpCircle,
-  Loader2,
-  Trash2,
-  Camera,
-  Image as ImageIcon,
-  X,
-  UploadCloud,
-  Maximize2,
-  Sparkles,
+import {Send,Recycle, User, ShieldCheck, HelpCircle, Loader2, Trash2, Camera, Image as ImageIcon, X,  UploadCloud, Maximize2, Mic, MicOff,
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { classifyWasteItem } from '../services/classifier';
 import { ResultCard } from '../components/ResultCard';
 import { compressAndReadImage, SAMPLE_WASTE_PHOTOS, type SampleWasteImage } from '../utils/imageHelper';
 import type { ClassificationResult, WasteCategory } from '../types';
+
+interface SpeechRecognitionEventLike extends Event {
+  results: {
+    [index: number]: {
+      [index: number]: { transcript: string };
+      isFinal: boolean;
+    };
+    length: number;
+  };
+}
+
+interface SpeechRecognitionLike {
+  continuous: boolean;
+  interimResults: boolean;
+  lang: string;
+  start: () => void;
+  stop: () => void;
+  onend: (() => void) | null;
+  onerror: ((event: { error: string }) => void) | null;
+  onresult: ((event: SpeechRecognitionEventLike) => void) | null;
+}
+
+interface SpeechRecognitionConstructor {
+  new(): SpeechRecognitionLike;
+}
+
+type SpeechRecognitionWindow = Window & {
+  SpeechRecognition?: SpeechRecognitionConstructor;
+  webkitSpeechRecognition?: SpeechRecognitionConstructor;
+};
 
 export const ClassifyPage: React.FC = () => {
   const { authMode, messages, addMessage, clearMessages, incrementEcoScore, addToHistory } = useApp();
@@ -31,11 +47,14 @@ export const ClassifyPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [lightboxImage, setLightboxImage] = useState<{ src: string; title: string } | null>(null);
+  const [isListening, setIsListening] = useState(false);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
+  const speechRecognitionRef = useRef<SpeechRecognitionLike | null>(null);
+  const stopListeningRef = useRef(false);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -44,6 +63,76 @@ export const ClassifyPage: React.FC = () => {
   useEffect(() => {
     scrollToBottom();
   }, [messages, isLoading, selectedImage]);
+
+  useEffect(() => {
+    return () => {
+      stopListeningRef.current = true;
+      speechRecognitionRef.current?.stop();
+    };
+  }, []);
+
+  const toggleVoiceRecognition = () => {
+    if (isListening) {
+      stopListeningRef.current = true;
+      speechRecognitionRef.current?.stop();
+      setIsListening(false);
+      return;
+    }
+
+    const SpeechRecognition = (window as SpeechRecognitionWindow).SpeechRecognition
+      || (window as SpeechRecognitionWindow).webkitSpeechRecognition;
+
+    if (!SpeechRecognition) {
+      setErrorMessage('Voice input is not supported in this browser. Try Chrome or Microsoft Edge.');
+      return;
+    }
+
+    const recognition = new SpeechRecognition();
+    recognition.continuous = false;
+    recognition.interimResults = false;
+    recognition.lang = navigator.language || 'en-US';
+    stopListeningRef.current = false;
+    speechRecognitionRef.current = recognition;
+
+    recognition.onresult = (event) => {
+      const transcripts: string[] = [];
+      for (let index = 0; index < event.results.length; index += 1) {
+        if (event.results[index].isFinal) {
+          transcripts.push(event.results[index][0].transcript);
+        }
+      }
+      const transcript = transcripts.join(' ').trim();
+      if (transcript) {
+        setInputValue((currentValue) => `${currentValue}${currentValue.trim() ? ' ' : ''}${transcript}`);
+        setErrorMessage(null);
+      }
+    };
+
+    recognition.onerror = (event) => {
+      if (event.error !== 'aborted') {
+        setErrorMessage(event.error === 'not-allowed'
+          ? 'Microphone access was blocked. Allow microphone access and try again.'
+          : 'Voice input could not be completed. Please try again.');
+      }
+      setIsListening(false);
+    };
+
+    recognition.onend = () => {
+      setIsListening(false);
+      if (!stopListeningRef.current) {
+        textareaRef.current?.focus();
+      }
+    };
+
+    try {
+      recognition.start();
+      setIsListening(true);
+      setErrorMessage(null);
+    } catch {
+      setIsListening(false);
+      setErrorMessage('Voice input could not be started. Please try again.');
+    }
+  };
 
   // Quick Test Suggestions (both text and photo)
   const sampleItems: { label: string; cat: WasteCategory }[] = [
@@ -353,39 +442,6 @@ export const ClassifyPage: React.FC = () => {
                 </button>
               </div>
 
-              {/* Sample Photo Tryout Row */}
-              <div className="w-full bg-white rounded-2xl p-4 border border-neutral-200/90 shadow-2xs text-left">
-                <div className="flex items-center justify-between mb-2.5">
-                  <span className="text-[11px] font-bold uppercase tracking-wider text-neutral-500">
-                    Try Sample Waste Images:
-                  </span>
-                  <span className="text-[10px] text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md font-medium">
-                    1-Click Test
-                  </span>
-                </div>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                  {SAMPLE_WASTE_PHOTOS.map((sample) => (
-                    <button
-                      key={sample.id}
-                      type="button"
-                      onClick={() => handleSelectSamplePhoto(sample)}
-                      className="flex items-center gap-2 p-2 rounded-xl bg-neutral-50 hover:bg-emerald-50/70 border border-neutral-200/80 hover:border-emerald-300 text-left transition-all cursor-pointer group"
-                    >
-                      <span className="text-xl shrink-0 group-hover:scale-110 transition-transform">
-                        {sample.icon}
-                      </span>
-                      <div className="overflow-hidden">
-                        <p className="text-xs font-semibold text-neutral-800 truncate group-hover:text-emerald-900">
-                          {sample.name}
-                        </p>
-                        <span className="text-[10px] font-medium text-neutral-500 group-hover:text-emerald-700">
-                          ({sample.categoryHint})
-                        </span>
-                      </div>
-                    </button>
-                  ))}
-                </div>
-              </div>
             </motion.div>
           )}
         </AnimatePresence>
@@ -629,6 +685,23 @@ export const ClassifyPage: React.FC = () => {
                 <ImageIcon className="w-4 h-4 sm:w-5 sm:h-5" />
               </button>
 
+              {/* Voice Input Button */}
+              <button
+                id="voice-input-btn"
+                type="button"
+                onClick={toggleVoiceRecognition}
+                disabled={isLoading}
+                className={`w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center shrink-0 transition-colors cursor-pointer border disabled:opacity-50 ${isListening
+                  ? 'bg-rose-100 text-rose-700 border-rose-300 hover:bg-rose-200'
+                  : 'bg-neutral-100 hover:bg-emerald-50 text-neutral-600 hover:text-emerald-700 border-neutral-200 hover:border-emerald-300'
+                  }`}
+                title={isListening ? 'Stop voice input' : 'Speak waste item'}
+                aria-label={isListening ? 'Stop voice input' : 'Start voice input'}
+                aria-pressed={isListening}
+              >
+                {isListening ? <MicOff className="w-4 h-4 sm:w-5 sm:h-5" /> : <Mic className="w-4 h-4 sm:w-5 sm:h-5" />}
+              </button>
+
               {/* Text Input Area */}
               <textarea
                 ref={textareaRef}
@@ -680,10 +753,10 @@ export const ClassifyPage: React.FC = () => {
           {/* Bottom Bar Footer: Helper text + Privacy Badge */}
           <div className="flex items-center justify-between px-2 text-[11px] text-neutral-400">
             <span className="hidden sm:inline">
-              Snap photo, upload image, paste (Ctrl+V) or Enter to classify
+              Snap photo, upload image, speak, paste (Ctrl+V) or Enter to classify
             </span>
             <span className="sm:hidden">
-              Photo, image or Enter to send
+              Photo, image, voice or Enter to send
             </span>
 
             {/* Privacy Badge on the right */}
