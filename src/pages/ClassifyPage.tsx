@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect, type KeyboardEvent, type DragEvent, type ClipboardEvent } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import {Send,Recycle, User, ShieldCheck, HelpCircle, Loader2, Trash2, Camera, Image as ImageIcon, X,  UploadCloud, Maximize2, Mic, MicOff,
+import {
+  Send, Recycle, User, ShieldCheck, HelpCircle, Loader2, Trash2, Camera, Image as ImageIcon, X, UploadCloud, Maximize2, Mic, MicOff,
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { classifyWasteItem } from '../services/classifier';
@@ -352,7 +353,7 @@ export const ClassifyPage: React.FC = () => {
 
       {/* Top Page Header Bar */}
       <div className="bg-white border-b border-neutral-200/80 px-4 sm:px-6 py-3.5 sticky top-16 z-20 shadow-2xs">
-        <div className="max-w-4xl mx-auto flex flex-wrap items-center justify-between gap-3">
+        <div className="w-full flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-2.5">
             <h1 className="text-xl sm:text-2xl font-black text-neutral-900 tracking-tight">
               Classify Waste

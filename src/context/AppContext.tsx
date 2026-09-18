@@ -1,9 +1,21 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import type { User } from 'firebase/auth';
 import type { ClassificationResult, ChatMessage, HistoryItem } from '../types';
+import {
+  isFirebaseConfigured,
+  observeAuthState,
+  signIn,
+  signOut,
+  signUp,
+} from '../services/firebaseAuth';
 
 interface AppContextType {
   authMode: 'guest' | 'login';
   setAuthMode: (mode: 'guest' | 'login') => void;
+  authReady: boolean;
+  authConfigured: boolean;
+  authenticate: (email: string, password: string, createAccount: boolean) => Promise<void>;
+  logout: () => void;
   userEmail: string;
   setUserEmail: (email: string) => void;
   ecoScore: number;
@@ -61,18 +73,20 @@ const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [authMode, setAuthMode] = useState<'guest' | 'login'>('guest');
-  const [userEmail, setUserEmail] = useState<string>('mansiiydv158@gmail.com');
+  const [userEmail, setUserEmail] = useState<string>('');
+  const [authReady, setAuthReady] = useState(false);
   const [ecoScore, setEcoScore] = useState<number>(85);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [history, setHistory] = useState<HistoryItem[]>(DEFAULT_SAMPLE_HISTORY);
 
-  // Load persistence if available
   useEffect(() => {
+    const unsubscribe = observeAuthState((user: User | null) => {
+      setUserEmail(user?.email ?? '');
+      setAuthMode(user ? 'login' : 'guest');
+      setAuthReady(true);
+    });
+
     try {
-      const savedAuth = localStorage.getItem('ecoscan_auth');
-      if (savedAuth === 'login' || savedAuth === 'guest') {
-        setAuthMode(savedAuth);
-      }
       const savedScore = localStorage.getItem('ecoscan_score');
       if (savedScore) {
         setEcoScore(Number(savedScore));
@@ -84,15 +98,23 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     } catch {
       // Ignore storage errors in sandboxed iframes
     }
+    return unsubscribe;
   }, []);
 
   const handleSetAuthMode = (mode: 'guest' | 'login') => {
     setAuthMode(mode);
-    try {
-      localStorage.setItem('ecoscan_auth', mode);
-    } catch {
-      // Ignore
-    }
+  };
+
+  const authenticate = async (email: string, password: string, createAccount: boolean) => {
+    const user = createAccount ? await signUp(email, password) : await signIn(email, password);
+    setUserEmail(user.email ?? email);
+    setAuthMode('login');
+  };
+
+  const logout = () => {
+    void signOut();
+    setUserEmail('');
+    setAuthMode('guest');
   };
 
   const incrementEcoScore = (points = 3) => {
@@ -145,21 +167,24 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   return (
-    <AppContext.Provider
-      value={{
-        authMode,
-        setAuthMode: handleSetAuthMode,
-        userEmail,
-        setUserEmail,
-        ecoScore,
-        incrementEcoScore,
-        messages,
-        addMessage,
-        clearMessages,
-        history,
-        addToHistory,
-        clearHistory,
-      }}
+    <AppContext.Provider value={{
+      authMode,
+      setAuthMode: handleSetAuthMode,
+      authReady,
+      authConfigured: isFirebaseConfigured,
+      authenticate,
+      logout,
+      userEmail,
+      setUserEmail,
+      ecoScore,
+      incrementEcoScore,
+      messages,
+      addMessage,
+      clearMessages,
+      history,
+      addToHistory,
+      clearHistory,
+    }}
     >
       {children}
     </AppContext.Provider>

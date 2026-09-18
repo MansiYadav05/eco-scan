@@ -4,7 +4,6 @@
 
 export async function compressAndReadImage(file: File, maxDim = 1200, quality = 0.85): Promise<string> {
   return new Promise((resolve, reject) => {
-    // If not an image, reject
     if (!file.type.startsWith('image/')) {
       reject(new Error('Selected file is not an image.'));
       return;
