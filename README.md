@@ -99,6 +99,31 @@ Eco Scan focuses on practical segregation categories used in India:
 - Image input is optimized for household, packaging, and electronic waste recognition.
 - The app includes a local fallback engine so users still get useful guidance even without a live model key.
 
+## Deploy to Vercel
+
+This repository includes `vercel.json` and `api/index.ts`. Vercel serves the Vite output from `dist` and runs the existing Express API as a serverless function at `/api/classify`.
+
+1. Push the project to GitHub, GitLab, or Bitbucket. Do not commit `.env` or any API keys.
+2. In Vercel, select **Add New Project**, import the repository, and keep the detected framework settings.
+3. Add these Environment Variables in the Vercel project settings for **Production**, **Preview**, and **Development** as needed:
+
+   - `GEMINI_API_KEY` — server-only Gemini API key.
+   - `VITE_FIREBASE_API_KEY`
+   - `VITE_FIREBASE_AUTH_DOMAIN`
+   - `VITE_FIREBASE_PROJECT_ID`
+   - `VITE_FIREBASE_STORAGE_BUCKET`
+   - `VITE_FIREBASE_MESSAGING_SENDER_ID`
+   - `VITE_FIREBASE_APP_ID`
+   - `VITE_FIREBASE_MEASUREMENT_ID` — optional.
+
+4. Deploy. Vercel runs `npm run build` and publishes the generated `dist` directory.
+5. In Firebase Console, open **Authentication > Settings > Authorized domains** and add the Vercel production domain, plus the Preview domain if users will sign in there.
+6. In **Authentication > Sign-in method**, enable **Email/Password**.
+
+Firebase Authentication is compatible with Vercel. Firebase Auth runs in the browser, while the `VITE_FIREBASE_*` values are public web-app configuration and are bundled into the frontend. Keep `GEMINI_API_KEY` server-only; never prefix it with `VITE_`.
+
+If the Gemini key in a local `.env` file has been committed to source control or shared, revoke it and create a replacement before deploying.
+
 ## License
 
-This project is for educational and demonstration use. Update or extend it as needed for your own deployment or production environment.
+This project is for educational and demonstration use. 

@@ -509,7 +509,9 @@ Provide concise, authoritative guidance strictly rooted in Indian municipal rule
   }
 });
 
-// Vite middleware or static serving
+export default app;
+
+// Vite middleware or static serving for the local Express server.
 async function startServer() {
   if (process.env.NODE_ENV !== 'production') {
     const vite = await createViteServer({
@@ -530,4 +532,6 @@ async function startServer() {
   });
 }
 
-startServer();
+if (!process.env.VERCEL) {
+  startServer();
+}

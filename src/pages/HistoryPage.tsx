@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
   History,
@@ -12,6 +12,7 @@ import {
   CheckCircle2,
   Share2,
   Check,
+  X,
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { ResultCard } from '../components/ResultCard';
@@ -24,6 +25,17 @@ export const HistoryPage: React.FC = () => {
   const [categoryFilter, setCategoryFilter] = useState<string>('All');
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!selectedItem) return;
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setSelectedItem(null);
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [selectedItem]);
 
   const filteredHistory = history.filter((item) => {
     const matchesSearch = item.itemDescription.toLowerCase().includes(searchQuery.toLowerCase());
@@ -156,11 +168,10 @@ Segregated via Eco Scan`;
                     key={cat}
                     type="button"
                     onClick={() => setCategoryFilter(cat)}
-                    className={`px-3 py-1.5 rounded-xl font-medium transition-all cursor-pointer whitespace-nowrap border ${
-                      categoryFilter === cat
-                        ? 'bg-emerald-900 text-white border-emerald-900 shadow-xs'
-                        : 'bg-white text-neutral-600 hover:bg-neutral-100 border-neutral-200'
-                    }`}
+                    className={`px-3 py-1.5 rounded-xl font-medium transition-all cursor-pointer whitespace-nowrap border ${categoryFilter === cat
+                      ? 'bg-emerald-900 text-white border-emerald-900 shadow-xs'
+                      : 'bg-white text-neutral-600 hover:bg-neutral-100 border-neutral-200'
+                      }`}
                   >
                     {cat}
                   </button>
@@ -190,7 +201,7 @@ Segregated via Eco Scan`;
               </div>
             ) : (
               /* Records Grid & Inspection Drawer */
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <div className="space-y-3">
                 {/* Items List */}
                 <div className="lg:col-span-2 space-y-3">
                   {filteredHistory.map((item) => {
@@ -206,26 +217,24 @@ Segregated via Eco Scan`;
                       <div
                         key={item.id}
                         onClick={() => setSelectedItem(item)}
-                        className={`p-4 rounded-2xl bg-white border transition-all cursor-pointer flex items-center justify-between gap-4 ${
-                          isSelected
-                            ? 'border-emerald-500 ring-2 ring-emerald-500/20 shadow-sm'
-                            : 'border-neutral-200/90 hover:border-emerald-300 hover:shadow-xs'
-                        }`}
+                        className={`p-4 rounded-2xl bg-white border transition-all cursor-pointer flex items-center justify-between gap-4 ${isSelected
+                          ? 'border-emerald-500 ring-2 ring-emerald-500/20 shadow-sm'
+                          : 'border-neutral-200/90 hover:border-emerald-300 hover:shadow-xs'
+                          }`}
                       >
                         <div className="space-y-1 min-w-0">
                           <div className="flex items-center gap-2">
                             <span
-                              className={`text-[10px] font-bold px-2 py-0.5 rounded-md border ${
-                                item.category === 'Wet'
-                                  ? 'bg-emerald-50 text-emerald-900 border-emerald-300'
-                                  : item.category === 'Dry'
+                              className={`text-[10px] font-bold px-2 py-0.5 rounded-md border ${item.category === 'Wet'
+                                ? 'bg-emerald-50 text-emerald-900 border-emerald-300'
+                                : item.category === 'Dry'
                                   ? 'bg-blue-50 text-blue-900 border-blue-300'
                                   : item.category === 'Hazardous'
-                                  ? 'bg-rose-50 text-rose-900 border-rose-300'
-                                  : item.category === 'Recyclable'
-                                  ? 'bg-teal-50 text-teal-900 border-teal-300'
-                                  : 'bg-amber-50 text-amber-900 border-amber-300'
-                              }`}
+                                    ? 'bg-rose-50 text-rose-900 border-rose-300'
+                                    : item.category === 'Recyclable'
+                                      ? 'bg-teal-50 text-teal-900 border-teal-300'
+                                      : 'bg-amber-50 text-amber-900 border-amber-300'
+                                }`}
                             >
                               {item.category}
                             </span>
@@ -264,24 +273,33 @@ Segregated via Eco Scan`;
                   })}
                 </div>
 
-                {/* Selected Item Detail View */}
-                <div className="lg:col-span-1">
-                  {selectedItem ? (
-                    <div className="sticky top-24">
+                {selectedItem && (
+                  <div
+                    className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-neutral-950/45 p-4 sm:p-6"
+                    role="presentation"
+                    onMouseDown={(event) => {
+                      if (event.target === event.currentTarget) setSelectedItem(null);
+                    }}
+                  >
+                    <div
+                      className="relative my-4 w-full max-w-2xl"
+                      role="dialog"
+                      aria-modal="true"
+                      aria-label={`Classification details for ${selectedItem.itemDescription}`}
+                    >
+                      <button
+                        type="button"
+                        onClick={() => setSelectedItem(null)}
+                        className="absolute right-3 top-3 z-10 rounded-xl border border-neutral-200 bg-white p-2 text-neutral-500 shadow-sm transition-colors hover:border-rose-300 hover:bg-rose-50 hover:text-rose-700"
+                        title="Close details"
+                        aria-label="Close classification details"
+                      >
+                        <X className="h-5 w-5" />
+                      </button>
                       <ResultCard result={selectedItem.result} />
                     </div>
-                  ) : (
-                    <div className="sticky top-24 p-6 rounded-2xl bg-white border border-neutral-200 text-center text-neutral-500">
-                      <CheckCircle2 className="w-8 h-8 text-emerald-400 mx-auto mb-2" />
-                      <h4 className="text-sm font-bold text-neutral-800">
-                        Select a record
-                      </h4>
-                      <p className="text-xs text-neutral-400 mt-1">
-                        Click any item from your history to view its full disposal guide and municipal bin specifications.
-                      </p>
-                    </div>
-                  )}
-                </div>
+                  </div>
+                )}
               </div>
             )}
           </div>
