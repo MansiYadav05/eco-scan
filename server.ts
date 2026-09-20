@@ -514,6 +514,7 @@ export default app;
 // Vite middleware or static serving for the local Express server.
 async function startServer() {
   if (process.env.NODE_ENV !== 'production') {
+     const { createServer: createViteServer } = await import('vite');
     const vite = await createViteServer({
       server: { middlewareMode: true },
       appType: 'spa',
